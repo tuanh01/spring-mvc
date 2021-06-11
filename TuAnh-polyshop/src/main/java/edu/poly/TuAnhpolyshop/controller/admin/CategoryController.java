@@ -1,12 +1,18 @@
 package edu.poly.TuAnhpolyshop.controller.admin;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Optional;import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -22,6 +28,7 @@ import org.springframework.web.servlet.ModelAndView;
 import edu.poly.TuAnhpolyshop.domain.Category;
 import edu.poly.TuAnhpolyshop.model.CategoryDto;
 import edu.poly.TuAnhpolyshop.service.CategoryService;
+import edu.poly.TuAnhpolyshop.utils.Const;
 
 @Controller
 @RequestMapping("admin/categories")
@@ -114,5 +121,52 @@ public class CategoryController {
 		model.addAttribute("categories",list);//thiết lập danh sách cho thuộc tính categories
 		
 		return "admin/categories/search";
+	}
+	
+	@GetMapping("searchpaginated")
+	public String search( ModelMap model ,@RequestParam (name="name", required = false) String name ,
+			@RequestParam("page") Optional<Integer> page,//trang hiện tại
+			@RequestParam("age") Optional<Integer> size) {//size là kích thước hiển thị trên 1 trang
+
+		int curentPage=page.orElse(1);//nếu người dùng không chọn giá trị thì giá trị ngầm định sẽ là trang 1
+		
+		int pageSize =size.orElse(5);//giá trị ngầm định là 5 phần tử trên 1 trang
+		
+		Pageable pageable = PageRequest.of(curentPage-1, pageSize,Sort.by("name"));//sắp xếp theeo trường dữ liệu name
+		
+		Page<Category> resultPage = null;
+		
+		if(StringUtils.hasText(name)) {//kiểm tra nội dung truyền về có nội dung hay không
+			
+			resultPage=categoryservice.findByNameContaining(name,pageable);
+			
+			model.addAttribute("name",name);
+		}else {
+			resultPage=categoryservice.findAll(pageable);//nếu không được truyền vào thì sẽ hiện cả 
+			
+		}
+		//tính toán số trang được hiển thị
+		int totalPages= resultPage.getTotalPages(); //trả về các trang đã được phân trang
+		
+		if(totalPages > 0) {
+			
+			int start = Math.max(1, curentPage-2);
+			int end = Math.min(curentPage + 2, totalPages);
+			
+			if(totalPages >5) {
+				
+				if(end == totalPages) start = end-5;
+				else if(start == 1) end =start +5;
+			}
+			List<Integer>pageNumbers=IntStream.range(start, end)   //xác định các trang được sinh ra từ start đến end
+					.boxed()
+					.collect(Collectors.toList());
+			
+			model.addAttribute("pageNumbers",pageNumbers);
+		}
+		
+		model.addAttribute(Const.CATEGORY_PAGE,resultPage);//thiết lập danh sách cho thuộc tính categories
+		
+		return "admin/categories/searchpaginated";//trả về searchpaginated
 	}
 }

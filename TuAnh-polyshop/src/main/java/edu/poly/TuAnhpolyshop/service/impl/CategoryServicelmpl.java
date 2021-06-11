@@ -24,6 +24,12 @@ public class CategoryServicelmpl implements CategoryService{
 
 
 	@Override
+	public Page<Category> findByNameContaining(String name, Pageable pageable) {
+		return categoryRepository.findByNameContaining(name, pageable);
+	}
+
+
+	@Override
 	public List<Category> findByNameContaining(String name) {
 		return categoryRepository.findByNameContaining(name);
 	}
