@@ -27,27 +27,42 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import edu.poly.TuAnhpolyshop.domain.Category;
 import edu.poly.TuAnhpolyshop.model.CategoryDto;
+import edu.poly.TuAnhpolyshop.model.ProductDto;
 import edu.poly.TuAnhpolyshop.service.CategoryService;
+import edu.poly.TuAnhpolyshop.service.ProductService;
 import edu.poly.TuAnhpolyshop.utils.Const;
 
 @Controller
-@RequestMapping("admin/categories")
-public class CategoryController {
+@RequestMapping("admin/products")
+public class ProductController {
 
 	@Autowired
 	CategoryService categoryservice;
+	
+	@Autowired
+	ProductService productService;
 
+	@ModelAttribute("categores")
+	public List<CategoryDto> getCategories(){
+		
+		return categoryservice.findAll().stream().map(item->{
+			CategoryDto dto =new CategoryDto();
+			BeanUtils.copyProperties(item, dto);
+			return dto;
+		}).collect(Collectors.toList());
+	}
+	
 	@GetMapping("add")
 	public String add(Model model) {// hiển thị form addoredit
-		model.addAttribute("category", new CategoryDto());
-		return "admin/categories/addOrEdit";
+		model.addAttribute("product", new ProductDto());
+		return "admin/products/addOrEdit";
 
 	}
 
-	@GetMapping("edit/{categoryId}")//sửa thông tin
-	public ModelAndView edit(ModelMap model ,@PathVariable("categoryId") Long categoryId) {// chỉnh sửa addoredit
+	@GetMapping("edit/{productId}")//sửa thông tin
+	public ModelAndView edit(ModelMap model ,@PathVariable("productId") Long productId) {// chỉnh sửa addoredit
 
-		Optional<Category> opt =categoryservice.findById(categoryId);//lấy id
+		Optional<Category> opt =categoryservice.findById(productId);//lấy id
 		CategoryDto dto= new CategoryDto();
 		if(opt.isPresent()) {//kiểm tra nếu có giá trị trả về
 			
@@ -59,22 +74,22 @@ public class CategoryController {
 			
 			model.addAttribute("category",dto);//thiết lập giá trị thuộc tính category
 			
-			return new ModelAndView( "admin/categories/addOrEdit",model);//hiển thị thông tin
+			return new ModelAndView( "admin/products/addOrEdit",model);//hiển thị thông tin
 		}
 		model.addAttribute("message","Category không tồn tại");//trường hợp ngược lại,nếu không tồn tại sẽ thông báo
 		
-		return new ModelAndView("forward:/admin/categories",model);
+		return new ModelAndView("forward:/admin/products",model);
 		
 		
 	}
 
-	@GetMapping("delete/{categoryId}")
-	public ModelAndView delete(ModelMap model ,  @PathVariable("categoryId") Long categoryId) {// xóa một bản ghi trong category
+	@GetMapping("delete/{productId}")
+	public ModelAndView delete(ModelMap model ,  @PathVariable("productId") Long productId) {// xóa một bản ghi trong category
 
-		categoryservice.deleteById(categoryId);
+		categoryservice.deleteById(productId);
 		
 		model.addAttribute("message", "Đã xóa thành công bạn nhé");
-		return new ModelAndView("forward:/admin/categories/search",model);
+		return new ModelAndView("forward:/admin/products/search",model);
 	}
 
 	@PostMapping("saveOrUpdate")
@@ -82,7 +97,7 @@ public class CategoryController {
 
 		if(result.hasErrors()) {
 			
-			return new ModelAndView("admin/categories/addOrEdit");
+			return new ModelAndView("admin/products/addOrEdit");
 		}
 		
 		Category entity = new Category();// +Tạo đối tượng Category
@@ -93,7 +108,7 @@ public class CategoryController {
 
 		model.addAttribute("message", "Chúc mừng bạn đã Save thành công");
 
-		return new ModelAndView("forward:/admin/categories", model);
+		return new ModelAndView("forward:/admin/products", model);
 	}
 
 	@RequestMapping("")
@@ -101,9 +116,9 @@ public class CategoryController {
 
 		List<Category> list = categoryservice.findAll();// trả về danh sách category có trong CSDL
 
-		model.addAttribute("categories", list);// thiết lập thuộc tính cho model
+		model.addAttribute("products", list);// thiết lập thuộc tính cho model
 
-		return "admin/categories/list";
+		return "admin/products/list";
 	}
 
 	@GetMapping("search")
@@ -118,9 +133,9 @@ public class CategoryController {
 			list=categoryservice.findAll();
 			
 		}
-		model.addAttribute("categories",list);//thiết lập danh sách cho thuộc tính categories
+		model.addAttribute("products",list);//thiết lập danh sách cho thuộc tính products
 		
-		return "admin/categories/search";
+		return "admin/products/search";
 	}
 	
 	@GetMapping("searchpaginated")
@@ -165,8 +180,8 @@ public class CategoryController {
 			model.addAttribute("pageNumbers",pageNumbers);
 		}
 		
-		model.addAttribute(Const.CATEGORY_PAGE,resultPage);//thiết lập danh sách cho thuộc tính categories
+		model.addAttribute(Const.CATEGORY_PAGE,resultPage);//thiết lập danh sách cho thuộc tính products
 		
-		return "admin/categories/searchpaginated";//trả về searchpaginated
+		return "admin/products/searchpaginated";//trả về searchpaginated
 	}
 }

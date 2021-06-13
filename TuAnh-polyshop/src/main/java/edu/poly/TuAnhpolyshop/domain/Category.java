@@ -1,12 +1,15 @@
 package edu.poly.TuAnhpolyshop.domain;
 
 import java.io.Serializable;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -26,4 +29,10 @@ public class Category implements Serializable {
 	@Column(name="category_name" ,length = 100 
 			,columnDefinition = "nvarchar(100) not null")
 	private String name;
+	
+	
+	//1 nhiều(1 category nhiều product)
+	//khi delete category thì product cũng delete theo
+	@OneToMany(mappedBy = "category",cascade = CascadeType.ALL)
+	private Set<Product> products;//danh sách các product
 }
